@@ -317,6 +317,12 @@ function findElements(
         PARTIAL: 5,
         PARTIAL_IGNORE_CASE: 5,
       },
+      PTS_ALT_ATTR_MATCH: {
+        EXACT: 80,
+        EXACT_IGNORE_CASE: 80,
+        PARTIAL: 5,
+        PARTIAL_IGNORE_CASE: 5,
+      },
     };
 
     function getInnerHTMLScore(innerHTML, regexStr) {
@@ -415,7 +421,6 @@ function findElements(
       return placeholderScore;
     }
 
-
     function getNameAttrScore(nameAttribute, regexStr) {
       // calculate scores for element's placeholder attribute
       let nameScore = 0;
@@ -446,6 +451,21 @@ function findElements(
       return typeScore;
     }
 
+    function getAltAttrScore(altAttr, regexStr) {
+      // calculate scores for element's alt attribute
+      let altScore = 0;
+      if (isExactMatch(altAttr, regexStr)) altScore += points.PTS_ALT_ATTR_MATCH.EXACT;
+      else if (isExactMatchIgnoreCase(altAttr, regexStr)) altScore += points.PTS_ALT_ATTR_MATCH.EXACT_IGNORE_CASE;
+      else if (isPartialMatch(altAttr, regexStr)) {
+        altScore += points.PTS_ALT_ATTR_MATCH.PARTIAL;
+        altScore += getPartialMatchPoints(altAttr, new RegExp(regexStr));
+      } else if (isPartialMatchIgnoreCase(altAttr, regexStr)) {
+        altScore += points.PTS_ALT_ATTR_MATCH.PARTIAL_IGNORE_CASE;
+        altScore += getPartialMatchPoints(altAttr, new RegExp(regexStr, 'i'));
+      }
+      return altScore;
+    }
+
     const elementInnerHTML = element.innerHTML;
     const elementInnerText = element.innerText;
     const title = getAttributeValue(element, 'title');
@@ -454,6 +474,7 @@ function findElements(
     const placeholder = getAttributeValue(element, 'placeholder');
     const name = getAttributeValue(element, 'name');
     const type = getAttributeValue(element, 'type');
+    const alt = getAttributeValue(element, 'alt');
 
     let score = 0;
 
@@ -467,6 +488,7 @@ function findElements(
       score += getPlaceholderAttrScore(placeholder, searchRegexStr);
       score += getNameAttrScore(name, searchRegexStr);
       score += getTypeAttrScore(type, searchRegexStr);
+      score += getAltAttrScore(alt, searchRegexStr);
     }
 
     return score;
